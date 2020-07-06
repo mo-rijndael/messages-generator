@@ -1,32 +1,79 @@
 use std::collections::HashMap;
+use rand::seq::SliceRandom;
 
 #[cfg(test)]
 mod tests {
+    use crate::Generator;
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    fn test() {
+        let mut g = Generator::new();
+        g.train("some stupid words to test this crap");
+        assert_eq!(g.generate(), "some stupid words to test this crap");
     }
 }
-
+type Node = Option<String>;
+type Key = Vec<Node>; //len should always be 2
 pub struct Generator{
     text: String,
-    chain: HashMap<(String, String), Vec<String>>
+    chain: HashMap<Key, Vec<Node>>
 }
 impl Generator{
+    pub fn new() -> Self {
+        Generator {
+            text: String::new(),
+            chain: HashMap::new()
+        }
+    }
     pub fn train(&mut self, text: &str){
         if text.is_empty(){
             return
         }
-        let mut vector = vec![String::new();2];
-        for i in text.split_whitespace(){
-            vector.push(i.to_string());
-        }
-        for i in 0..vector.len()-2{
-            let  key = (vector[i].clone(), vector[i+1].clone());
-            if !self.chain.contains_key(&key){
-                self.chain.insert(key.clone(), vec![]);
+        self.text.push_str(text);
+        let mut text = text.split_whitespace()
+            .map(String::from)
+            .map(|x| {Option::from(x)})
+            .collect::<Vec<_>>();
+        text.insert(0, None);
+        text.insert(0, None);
+        text.push(None);
+        for window in text.windows(3) {
+            //let window = window.to_owned();
+            let (key, value) = window.split_at(2);
+            if self.chain.contains_key(key) {
+                self.chain.get_mut(key).unwrap().push(value[1].clone());
             }
-            self.chain[&key].push(vector[i+3].clone());
+            else {
+                self.chain.insert(key.to_vec(), value.to_vec()); 
+            }
+        }
+        
+    }
+    pub fn generate(&self) -> String {
+        println!("map: {:?}", &self.chain);
+        let mut rng = rand::thread_rng();
+        let mut string: Vec<Node> = vec![None, None];
+        loop {
+            let index = &string[string.len()-2..];
+            println!("index: {:?}", &index);
+            //println!("map: {:?}", &self.chain);
+            let variants = self.chain.get(index).unwrap();
+            let choice = variants.choose(&mut rng).unwrap().clone();
+            if choice.is_none() {
+                break
+            }
+            string.push(choice);
+            println!("string:{:?}", string);
+        }
+        let result = string.into_iter()
+            .skip(2)
+            .map( |x| x.unwrap() )
+            .collect::<Vec<_>>()
+            .join(" ");
+        if !self.text.contains(&result) {
+            result
+        }
+        else {
+            self.generate()
         }
     }
 }

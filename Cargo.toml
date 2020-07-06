@@ -3,7 +3,9 @@ name = "messages-generator"
 version = "0.1.0"
 authors = ["Termonoid <termonoid@yandex.ru>"]
 edition = "2018"
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rand = "*"
