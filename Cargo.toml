@@ -1,5 +1,5 @@
 [package]
-name = "messages-generator"
+name = "messages_generator"
 version = "0.1.0"
 authors = ["Termonoid <termonoid@yandex.ru>"]
 edition = "2018"
