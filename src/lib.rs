@@ -7,8 +7,8 @@ mod tests {
     #[test]
     fn test() {
         let mut g = Generator::new();
-        g.train("some stupid words to test this crap");
-        assert_eq!(g.generate(), "some stupid words to test this crap");
+        g.train("some stupid words to test some stupid code");
+        println!("{}",g.generate(20))
     }
 }
 type Node = Option<String>;
@@ -40,7 +40,7 @@ impl Generator{
             //let window = window.to_owned();
             let (key, value) = window.split_at(2);
             if self.chain.contains_key(key) {
-                self.chain.get_mut(key).unwrap().push(value[1].clone());
+                self.chain.get_mut(key).unwrap().push(value[0].clone());
             }
             else {
                 self.chain.insert(key.to_vec(), value.to_vec()); 
@@ -48,7 +48,10 @@ impl Generator{
         }
         
     }
-    pub fn generate(&self) -> String {
+    pub fn generate(&self, tries:usize) -> String {
+        if tries == 0 {
+            return String::from("хуй тебе");
+        }
         println!("map: {:?}", &self.chain);
         let mut rng = rand::thread_rng();
         let mut string: Vec<Node> = vec![None, None];
@@ -73,7 +76,7 @@ impl Generator{
             result
         }
         else {
-            self.generate()
+            self.generate(tries-1)
         }
     }
 }
