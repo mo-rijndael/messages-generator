@@ -11,8 +11,10 @@ mod tests {
         println!("{}",g.generate(20))
     }
 }
-type Node = Option<String>;
+type Node = Option<Box<str>>;
 type Key = Vec<Node>; //len should always be 2
+
+#[derive(Default)]
 pub struct Generator{
     text: String,
     chain: HashMap<Key, Vec<Node>>
@@ -28,9 +30,16 @@ impl Generator{
         if text.is_empty(){
             return
         }
+        if text.contains('\n') {
+            for s in text.split('\n') {
+                self.train(s)
+            }
+            return
+        }
         self.text.push_str(text);
         let mut text = text.split_whitespace()
             .map(String::from)
+            .map(String::into_boxed_str)
             .map(Option::from)
             .collect::<Vec<_>>();
         text.insert(0, None);
