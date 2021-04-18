@@ -38,6 +38,7 @@ impl Generator{
             return
         }
         self.text.push_str(text);
+        self.text.push('\n');
         let mut text = text.split_whitespace()
             .map(String::from)
             .map(String::into_boxed_str)
