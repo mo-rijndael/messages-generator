@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::convert::{TryFrom, TryInto};
 use rand::seq::SliceRandom;
 
 #[cfg(test)]
@@ -12,7 +13,7 @@ mod tests {
     }
 }
 type Node = Option<Box<str>>;
-type Key = Vec<Node>; //len should always be 2
+type Key = [Node; 2]; //len should always be 2
 
 #[derive(Default)]
 pub struct Generator{
@@ -46,14 +47,14 @@ impl Generator{
         text.insert(0, None);
         text.push(None);
         for window in text.windows(3) {
-            //let window = window.to_owned();
             let (key, value) = window.split_at(2);
-            if self.chain.contains_key(key) {
-                self.chain.get_mut(key).unwrap().push(value[0].clone());
-            }
-            else {
-                self.chain.insert(key.to_vec(), value.to_vec()); 
-            }
+            match self.chain.get_mut(key) {
+                Some(vector) => { vector.extend_from_slice(value) },
+                None         => {
+                    let key = key.to_owned().try_into().unwrap();
+                    self.chain.insert(key, value.to_vec()); }
+
+            };
         }
         
     }
