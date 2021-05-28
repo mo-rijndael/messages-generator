@@ -6,16 +6,40 @@ use std::convert::TryInto;
 mod tests {
     use crate::Generator;
     #[test]
-    fn test() {
+    fn common() {
         let mut g = Generator::new();
         g.train("some stupid words to test some stupid code");
-        println!("{}", g.generate(20))
+        eprintln!("{:?}", g);
+        println!("{:?}", g.generate(20))
+    }
+    #[test]
+    fn empty() {
+        let mut g = Generator::new();
+        g.train("");
+        eprintln!("{:?}", g);
+        let out = g.generate(20);
+        assert_eq!(out, None)
+    }
+    #[test]
+    fn contain_test() {
+        let mut g = Generator::new();
+        let text = "s 1 2 3 e\n\
+                    s 2 3 4 e";
+        g.train(text);
+        eprintln!("{:?}", g);
+        for _ in 1..100 {
+            let default = String::from("not contains");
+            let generated = g.generate(20).unwrap_or(default);
+            if text.contains(&generated) {
+                panic!("Contains check failed!")
+            }
+        }
     }
 }
 type Node = Option<Box<str>>;
 type Key = [Node; 2];
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Generator {
     text: String,
     chain: HashMap<Key, Vec<Node>>,
