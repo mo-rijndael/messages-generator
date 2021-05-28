@@ -1,6 +1,6 @@
 use rand::seq::SliceRandom;
 use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryInto;
 
 #[cfg(test)]
 mod tests {
@@ -13,7 +13,7 @@ mod tests {
     }
 }
 type Node = Option<Box<str>>;
-type Key = [Node; 2]; //len should always be 2
+type Key = [Node; 2];
 
 #[derive(Default)]
 pub struct Generator {
@@ -59,16 +59,16 @@ impl Generator {
             };
         }
     }
-    pub fn generate(&self, tries: usize) -> String {
+    pub fn generate(&self, tries: usize) -> Option<String> {
         if tries == 0 {
-            return String::from("хуй тебе");
+            return None;
         }
         let mut rng = rand::thread_rng();
         let mut string: Vec<Node> = vec![None, None];
         loop {
             let index = &string[string.len() - 2..];
-            let variants = self.chain.get(index).unwrap();
-            let choice = variants.choose(&mut rng).unwrap().clone();
+            let variants = &self.chain.get(index)?;
+            let choice = variants.choose(&mut rng)?.clone();
             if choice.is_none() {
                 break;
             }
@@ -81,7 +81,7 @@ impl Generator {
             .collect::<Vec<_>>()
             .join(" ");
         if !self.text.contains(&result) {
-            result
+            Some(result)
         } else {
             self.generate(tries - 1)
         }
