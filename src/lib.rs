@@ -1,3 +1,4 @@
+#![warn(clippy::all)]
 use rand::seq::SliceRandom;
 use std::collections::HashMap;
 use std::convert::TryInto;
@@ -46,7 +47,7 @@ pub struct Generator {
 }
 impl Generator {
     pub fn new() -> Self {
-        Generator {
+        Self {
             text: String::new(),
             chain: HashMap::new(),
         }
