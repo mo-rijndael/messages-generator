@@ -37,7 +37,7 @@ mod tests {
         }
     }
 }
-type Node = Option<Box<str>>;
+type Node = Option<char>;
 type Key = [Node; 2];
 
 #[derive(Default, Debug)]
@@ -64,12 +64,7 @@ impl Generator {
         }
         self.text.push_str(text);
         self.text.push('\n');
-        let mut text = text
-            .split_whitespace()
-            .map(String::from)
-            .map(String::into_boxed_str)
-            .map(Option::from)
-            .collect::<Vec<_>>();
+        let mut text = text.chars().map(Option::from).collect::<Vec<_>>();
         text.insert(0, None);
         text.insert(0, None);
         text.push(None);
@@ -103,8 +98,7 @@ impl Generator {
             .into_iter()
             .skip(2)
             .map(Option::unwrap)
-            .collect::<Vec<_>>()
-            .join(" ");
+            .collect::<String>();
         if !self.text.contains(&result) {
             Some(result)
         } else {
