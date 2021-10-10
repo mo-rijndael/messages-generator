@@ -37,7 +37,7 @@ mod tests {
         }
     }
 }
-const WINDOW_SIZE: usize = 4;
+const WINDOW_SIZE: usize = 5;
 type Node = Option<char>;
 type Key = [Node; WINDOW_SIZE];
 
