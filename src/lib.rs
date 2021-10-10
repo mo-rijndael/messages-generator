@@ -37,8 +37,9 @@ mod tests {
         }
     }
 }
+const WINDOW_SIZE: usize = 3;
 type Node = Option<char>;
-type Key = [Node; 3];
+type Key = [Node; WINDOW_SIZE];
 
 #[derive(Default, Debug)]
 pub struct Generator {
@@ -65,11 +66,12 @@ impl Generator {
         self.text.push_str(text);
         self.text.push('\n');
         let mut text = text.chars().map(Option::from).collect::<Vec<_>>();
-        text.insert(0, None);
-        text.insert(0, None);
+        for _ in 0..WINDOW_SIZE {
+            text.insert(0, None);
+        }
         text.push(None);
-        for window in text.windows(3) {
-            let (key, value) = window.split_at(2);
+        for window in text.windows(WINDOW_SIZE + 1) {
+            let (key, value) = window.split_at(WINDOW_SIZE);
             match self.chain.get_mut(key) {
                 Some(vector) => vector.extend_from_slice(value),
                 None => {
@@ -84,9 +86,9 @@ impl Generator {
             return None;
         }
         let mut rng = rand::thread_rng();
-        let mut string: Vec<Node> = vec![None, None];
+        let mut string: Vec<Node> = vec![None; WINDOW_SIZE];
         loop {
-            let index = &string[string.len() - 2..];
+            let index = &string[string.len() - WINDOW_SIZE..];
             let variants = &self.chain.get(index)?;
             let choice = variants.choose(&mut rng)?.clone();
             if choice.is_none() {
@@ -96,7 +98,7 @@ impl Generator {
         }
         let result = string
             .into_iter()
-            .skip(2)
+            .skip(WINDOW_SIZE)
             .map(Option::unwrap)
             .collect::<String>();
         if !self.text.contains(&result) {
