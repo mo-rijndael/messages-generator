@@ -38,7 +38,7 @@ mod tests {
     }
 }
 type Node = Option<char>;
-type Key = [Node; 2];
+type Key = [Node; 3];
 
 #[derive(Default, Debug)]
 pub struct Generator {
