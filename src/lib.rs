@@ -1,6 +1,6 @@
 #![warn(clippy::all)]
 use rand::seq::SliceRandom;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 
 #[cfg(test)]
@@ -42,13 +42,13 @@ type Key = [Node; 2];
 
 #[derive(Default, Debug)]
 pub struct Generator {
-    text: String,
+    text: HashSet<String>,
     chain: HashMap<Key, Vec<Node>>,
 }
 impl Generator {
     pub fn new() -> Self {
         Self {
-            text: String::new(),
+            text: HashSet::new(),
             chain: HashMap::new(),
         }
     }
@@ -62,8 +62,7 @@ impl Generator {
             }
             return;
         }
-        self.text.push_str(text);
-        self.text.push('\n');
+        self.text.insert(String::from(text));
         let mut text = text
             .split_whitespace()
             .map(String::from)
