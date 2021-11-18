@@ -10,8 +10,7 @@ mod tests {
     fn common() {
         let mut g = Generator::new();
         g.train("some stupid words to test some stupid code");
-        eprintln!("{:?}", g);
-        println!("{:?}", g.generate(20))
+        assert!(g.generate(100).is_some())
     }
     #[test]
     fn empty() {
