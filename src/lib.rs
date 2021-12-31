@@ -1,6 +1,6 @@
 #![warn(clippy::all)]
 use rand::seq::SliceRandom;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::convert::TryInto;
 
 #[cfg(test)]
@@ -8,13 +8,13 @@ mod tests {
     use crate::Generator;
     #[test]
     fn common() {
-        let mut g = Generator::new();
+        let mut g = Generator::default();
         g.train("some stupid words to test some stupid code");
         assert!(g.generate(100).is_some())
     }
     #[test]
     fn empty() {
-        let mut g = Generator::new();
+        let mut g = Generator::default();
         g.train("");
         eprintln!("{:?}", g);
         let out = g.generate(20);
@@ -22,7 +22,7 @@ mod tests {
     }
     #[test]
     fn contain_test() {
-        let mut g = Generator::new();
+        let mut g = Generator::default();
         let text = "s 1 2 3 e\n\
                     s 2 3 4 e";
         g.train(text);
@@ -39,19 +39,37 @@ mod tests {
 type Node = Option<Box<str>>;
 type Key = [Node; 2];
 
+#[derive(Debug, Clone)]
+pub enum Limit {
+    Unlimited,
+    Limited { min: usize, overflow: usize },
+}
+impl Default for Limit {
+    fn default() -> Self {
+        Self::Unlimited
+    }
+}
+
 #[derive(Default, Debug)]
 pub struct Generator {
-    text: HashSet<String>,
+    limit: Limit,
+    text: Vec<String>,
     chain: HashMap<Key, Vec<Node>>,
 }
 impl Generator {
-    pub fn new() -> Self {
+    pub fn new(limit: Limit) -> Self {
         Self {
-            text: HashSet::new(),
+            limit,
+            text: Vec::new(),
             chain: HashMap::new(),
         }
     }
     pub fn train(&mut self, text: &str) {
+        self.text.push(String::from(text));
+        self.update_chain(text);
+        self.rebuild();
+    }
+    fn update_chain(&mut self, text: &str) {
         if text.is_empty() {
             return;
         }
@@ -61,7 +79,6 @@ impl Generator {
             }
             return;
         }
-        self.text.insert(String::from(text));
         let mut text = text
             .split_whitespace()
             .map(String::from)
@@ -94,7 +111,7 @@ impl Generator {
         let mut string: Vec<Node> = vec![None, None];
         loop {
             let index = &string[string.len() - 2..];
-            let variants = &self.chain.get(index)?;
+            let variants = self.chain.get(index)?;
             let choice = variants.choose(&mut rng)?.clone();
             if choice.is_none() {
                 break;
@@ -113,4 +130,36 @@ impl Generator {
             self.generate(tries - 1)
         }
     }
+    fn rebuild(&mut self) {
+        if !self.need_rebuild() {
+            return;
+        }
+        if let Limit::Limited { min, .. } = self.limit {
+            let len = self.text.len();
+            let tail_of_text = &self.text[len - min..];
+            let mut new_self = Self::new(self.limit.clone());
+            for message in tail_of_text {
+                new_self.update_chain(message)
+            }
+            new_self.text = tail_of_text.to_vec();
+            *self = new_self
+        }
+    }
+    fn need_rebuild(&self) -> bool {
+        matches!(self.limit, Limit::Limited { min, overflow } if self.text.len() > min + overflow)
+    }
+}
+#[cfg(test)]
+#[test]
+fn check_wrapping() {
+    let mut generator = Generator::new(Limit::Limited {
+        min: 2,
+        overflow: 1,
+    });
+    for _ in 0..3 {
+        generator.train("first")
+    }
+    assert_eq!(generator.text, &["first"; 3]);
+    generator.train("second");
+    assert_eq!(generator.text, &["first", "second"]);
 }
