@@ -76,6 +76,10 @@ impl Generator {
             match self.chain.get_mut(key) {
                 Some(vector) => vector.extend_from_slice(value),
                 None => {
+                    assert!(
+                        key.len() == 2,
+                        "Something is wrong with std: slice len != 2"
+                    );
                     let key = key.to_owned().try_into().unwrap();
                     self.chain.insert(key, value.to_vec());
                 }
