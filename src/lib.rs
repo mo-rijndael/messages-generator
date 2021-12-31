@@ -104,7 +104,7 @@ impl Generator {
         let result = string
             .into_iter()
             .skip(2)
-            .map(Option::unwrap)
+            .map(Option::unwrap) //We skipped first 2 Nones, so it's safe
             .collect::<Vec<_>>()
             .join(" ");
         if !self.text.contains(&result) {
